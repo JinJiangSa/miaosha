@@ -1,11 +1,25 @@
 package com.lac.component.controller;
 
+import com.lac.component.rabbit.MsgProducer;
+import com.lac.component.rabbit.RabbitConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Random;
+
 @RestController
 public class DemoController {
+
+
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Autowired
+    private RabbitConfig rabbitConfig;
     @GetMapping("/")
     public String getHello() {
         return "hello";
@@ -25,6 +39,42 @@ public class DemoController {
     @GetMapping("/huisetiankong/{str}")
     public String test3(@PathVariable String str) {
         return "听了无数遍:"+str;
+    }
+
+    @GetMapping("/rabbit")
+    public  String send() throws Exception{
+
+        String goodsId = "goods1";
+            //msgProducer1.sendMsg("生产者1"+String.valueOf(i));
+        Random r = new Random(1);
+        int i = r.nextInt(100);
+            MsgProducer producer = new MsgProducer(rabbitConfig.rabbitTemplate());
+
+            System.out.println(redisTemplate.opsForValue().toString());
+
+            Integer count = (Integer) redisTemplate.opsForValue().get(goodsId);
+            if(count == 0){
+                System.out.println("没库存了");
+                return "没库存了";
+            }
+            long kucun = redisTemplate.opsForValue().decrement(goodsId,i);
+            if(kucun <0 ){
+                count = (Integer) redisTemplate.opsForValue().get(goodsId);
+                if(count != 0 && count < Integer.valueOf(i)){
+                    redisTemplate.opsForValue().increment(goodsId,i);
+                    System.out.println("买多了再把库存还原");
+                    return "买多了再把库存还原";
+                }else if(count == 0){
+                    redisTemplate.opsForValue().set(goodsId,0);
+                    return "库存卖完了";
+                }
+                System.out.println("redis库存:"+ redisTemplate.opsForValue().get(goodsId));
+            }
+            System.out.println("//////////////");
+            System.out.println(String.valueOf(i));
+            System.out.println("//////////////");
+            producer.sendMsg("goods1",String.valueOf(i));
+      return "外层循环";
     }
 
 }
