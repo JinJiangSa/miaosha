@@ -24,17 +24,12 @@ public RedisTemplate redisTemplate(RedisConnectionFactory redisConnectionFactory
     Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
     ObjectMapper om = new ObjectMapper();
     om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-    // om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
     jackson2JsonRedisSerializer.setObjectMapper(om);
     RedisSerializer redisSerializer = new FastJsonRedisSerializer(Object.class);
     // 配置redisTemplate
     RedisTemplate redisTemplate = new RedisTemplate<String, Object>();
     redisTemplate.setConnectionFactory(redisConnectionFactory);
     RedisSerializer stringSerializer = new StringRedisSerializer();
-//    redisTemplate.setKeySerializer(redisSerializer); // key序列化
-//    redisTemplate.setValueSerializer(redisSerializer); // value序列化
-//    redisTemplate.setHashKeySerializer(redisSerializer); // Hash key序列化
-//    redisTemplate.setHashValueSerializer(redisSerializer); // Hash value序列化
     redisTemplate.setKeySerializer(stringSerializer); // key序列化
     redisTemplate.setValueSerializer(jackson2JsonRedisSerializer); // value序列化
     redisTemplate.setHashKeySerializer(stringSerializer); // Hash key序列化

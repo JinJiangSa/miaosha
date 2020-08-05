@@ -45,13 +45,10 @@ public class DemoController {
     public  String send() throws Exception{
 
         String goodsId = "goods1";
-            //msgProducer1.sendMsg("生产者1"+String.valueOf(i));
         Random r = new Random(1);
         int i = r.nextInt(100);
             MsgProducer producer = new MsgProducer(rabbitConfig.rabbitTemplate());
-
             System.out.println(redisTemplate.opsForValue().toString());
-
             Integer count = (Integer) redisTemplate.opsForValue().get(goodsId);
             if(count == 0){
                 System.out.println("没库存了");
@@ -70,11 +67,8 @@ public class DemoController {
                 }
                 System.out.println("redis库存:"+ redisTemplate.opsForValue().get(goodsId));
             }
-            System.out.println("//////////////");
-            System.out.println(String.valueOf(i));
-            System.out.println("//////////////");
             producer.sendMsg("goods1",String.valueOf(i));
-      return "外层循环";
+      return "下单成功";
     }
 
 }
