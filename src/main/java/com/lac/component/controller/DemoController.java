@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpSession;
 import java.util.Random;
 
 @RestController
@@ -39,6 +41,18 @@ public class DemoController {
     @GetMapping("/huisetiankong/{str}")
     public String test3(@PathVariable String str) {
         return "听了无数遍:"+str;
+    }
+
+    @PostMapping("/fenshouyihou/{str}")
+    public String test4(HttpSession session,@PathVariable String str){
+        session.setAttribute("id",str);
+        return  str;
+    }
+
+    @GetMapping("/xiahuashang")
+    public String test5(HttpSession session){
+        String str = (String) session.getAttribute("id");
+        return  str;
     }
 
     @GetMapping("/rabbit")

@@ -4,13 +4,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lac.component.model.Goods;
 import com.lac.component.service.GoodsService;
+import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +33,7 @@ public class MsgReceiver {
 //   }
 
     @RabbitHandler
-    public void process(Map mp){
+    public void process(Map mp, Channel channel,@Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
         List<Goods> goodsList = this.goodsService.selectGoods();
         ObjectMapper mapper = new ObjectMapper();
         Map hashMap = new HashMap<String,Integer>();
@@ -46,6 +50,8 @@ public class MsgReceiver {
         System.out.println("更新成的件数"+String.valueOf(allCount-reduce));
        int successFlag =  this.goodsService.updateGoods("goods1",allCount-reduce);
        System.out.println(successFlag+"更新成功");
+        // Long tag =  (Long)headers.get(AmqpHeaders.DELIVERY_TAG);
+        channel.basicAck(tag,true);
 
     }
 }

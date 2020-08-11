@@ -6,11 +6,15 @@ import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class RabbitConfig {
@@ -55,26 +59,31 @@ public class RabbitConfig {
      * Channel:消息通道,在客户端的每个连接里,可建立多个channel.
      * 异步登陆日志，业务解耦，流量削峰，秒杀，异步发送注册邮件，异步发送异常登陆信息。
      */
-    @Bean
-    public ConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(host, port);
-        connectionFactory.setUsername(username);
-        connectionFactory.setPassword(password);
-        connectionFactory.setVirtualHost("/");
-        // connectionFactory.setPublisherConfirms(true);
-        return connectionFactory;
-    }
+//    @Bean
+//    public ConnectionFactory connectionFactory() {
+//        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(host, port);
+//        connectionFactory.setUsername(username);
+//        connectionFactory.setPassword(password);
+//        connectionFactory.setVirtualHost("/");
+//        return connectionFactory;
+//    }
 
+    @Autowired
+    private CachingConnectionFactory connectionFactory;
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public RabbitTemplate rabbitTemplate() {
-        RabbitTemplate template = new RabbitTemplate(connectionFactory());
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
         return template;
     }
 
     @Bean
     public DirectExchange defaultExchange() {
-        return new DirectExchange(EXCHANGE_A);
+
+//        Map<String, Object> eArguments = new HashMap<>();
+//        //备份交换器参数
+//        eArguments.put("alternate-exchange", RabbitConfig.FANOUT_EXCHANGE);
+        return new DirectExchange(EXCHANGE_A,true,false);
     }
     @Bean
     public DirectExchange defaultExchange1() {
@@ -132,20 +141,20 @@ public class RabbitConfig {
     //配置fanout_exchange
     @Bean
     FanoutExchange fanoutExchange() {
-        return new FanoutExchange(RabbitConfig.FANOUT_EXCHANGE);
+        return new FanoutExchange(RabbitConfig.FANOUT_EXCHANGE,true,false,null);
     }
     @Bean
     TopicExchange topicExchange(){
-        return new TopicExchange(this.TOPIC_EXCHANGE);
+        return new TopicExchange(this.TOPIC_EXCHANGE,true,false,null);
     }
-    @Bean
-    Binding bingingExchangeMessage(Queue queueMessage,TopicExchange topicExchange){
-        return BindingBuilder.bind(queueMessage).to(topicExchange).with("topic.message");
-    }
-    @Bean
-    Binding bingingExchangeMessages(Queue queueMessages,TopicExchange topicExchange){
-        return BindingBuilder.bind(queueMessages).to(topicExchange).with("topic.#");
-    }
+//    @Bean
+//    Binding bingingExchangeMessage(Queue queueMessage,TopicExchange topicExchange){
+//        return BindingBuilder.bind(queueMessage).to(topicExchange).with("topic.message");
+//    }
+//    @Bean
+//    Binding bingingExchangeMessages(Queue queueMessages,TopicExchange topicExchange){
+//        return BindingBuilder.bind(queueMessages).to(topicExchange).with("topic.#");
+//    }
 //    @Bean
 //    Binding bingingExchangeFanout(FanoutExchange fanoutExchange){
 //        return BindingBuilder.bind(queueA()).to(fanoutExchange);
