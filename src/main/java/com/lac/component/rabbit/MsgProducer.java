@@ -45,6 +45,7 @@ public class MsgProducer implements RabbitTemplate.ConfirmCallback,RabbitTemplat
         Map mp = new HashMap(1024);
         mp.put("goodsId",goodsId);
         mp.put("reduce",Integer.valueOf(content));
+        mp.put("uid",UUID.randomUUID().toString());
         rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_A,RabbitConfig.ROUTINGKEY_A,mp,correlationId);
         //rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_A,RabbitConfig.ROUTINGKEY_A,user,correlationId);
 
@@ -56,9 +57,9 @@ public class MsgProducer implements RabbitTemplate.ConfirmCallback,RabbitTemplat
     public void confirm(CorrelationData correlationData, boolean ack, String cause) {
         System.out.println(" 回调id:" + correlationData);
         if (ack) {
-            System.out.println("生产者0被消息成功消费");
+            System.out.println("生产者消息被投递");
         } else {
-            System.out.println("生产者0被消息消费失败:" + cause );
+            System.out.println("生产者消费投递失败:" + cause );
         }
     }
 

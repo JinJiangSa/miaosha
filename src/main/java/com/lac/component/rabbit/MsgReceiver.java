@@ -11,6 +11,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,9 @@ public class MsgReceiver {
 
     @Autowired
     private GoodsService goodsService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
     //   @RabbitHandler
 //    public void process(String content) {
 //       logger.info("处理器one接收处理队列A当中的消息：" +content);
@@ -47,11 +51,26 @@ public class MsgReceiver {
 
         String goodsId = (String) mp.get("goodsId");
         Integer reduce = (Integer) mp.get("reduce");
-        System.out.println("更新成的件数"+String.valueOf(allCount-reduce));
-       int successFlag =  this.goodsService.updateGoods("goods1",allCount-reduce);
-       System.out.println(successFlag+"更新成功");
-        // Long tag =  (Long)headers.get(AmqpHeaders.DELIVERY_TAG);
-        channel.basicAck(tag,true);
+        System.out.println((String) mp.get("uid"));
+        String uid = (String)redisTemplate.opsForValue().get((String) mp.get("uid"));
+        if(uid == null){
+            System.out.println("88888888888888"+uid);
+
+            // int i = 1/0;
+            System.out.println("更新成的件数"+String.valueOf(allCount-reduce));
+            int successFlag =  this.goodsService.updateGoods("goods1",allCount-reduce);
+            System.out.println(successFlag+"更新成功");
+            redisTemplate.opsForValue().set((String) mp.get("uid"),(String) mp.get("uid"));
+            // System.out.println(redisTemplate.opsForValue().get(a.getGoodsId()));
+            // Long tag =  (Long)headers.get(AmqpHeaders.DELIVERY_TAG);
+            // 模拟rabbitmq消费时出现异常，mq会继续给消费者提供信息，这个时候不用再去消费这两条信息了。
+            // int i = 1/0;
+            // 确认应答模式
+            channel.basicAck(tag,true);
+        }else {
+            System.out.println("消息已经被消费过了，不能再消费，保障幂等性问题");
+        }
+
 
     }
 }
